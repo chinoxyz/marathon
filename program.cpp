@@ -56,6 +56,7 @@ class SmallPolygons{
     }
     np/=2;
     string rp;
+    //comment
     for(int i = 0; i < np; i++){
       rp+=itos(i)+ " ";
     }
