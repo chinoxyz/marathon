@@ -36,6 +36,8 @@ class PT{
     y = yy;
     i = ii;
   }
+  PT operator <(const PT &p)  const { return x < p.x || (x == p.x && y < p.y); }
+  PT operator ==(const PT &p)  const { return x == p.x && y == p.y; }
   PT operator + (const PT &p)  const { return PT(x+p.x, y+p.y); }
   PT operator - (const PT &p)  const { return PT(x-p.x, y-p.y); }
   PT operator * (double c)     const { return PT(x*c,   y*c  ); }
@@ -63,7 +65,6 @@ string itos(int x){
 
 string vtos(vector<int> vi){
   string rp;
-  //comment
   for(int i = 0; i < vi.size(); i++){
     rp+=itos(vi[i])+ " ";
   }
@@ -84,7 +85,11 @@ class SmallPolygons{
     PT ir = ve[vi[1]];
     vector<pair<pair<double,double>, int> > vs;
     //cerr << ic << endl;
-    for(int i = 1; i < vi.size(); i++){
+    for(int i = 0; i < vi.size(); i++){
+      if(ve[vi[i]] == ic){
+        vs.pb(mp(mp(0,0),i));
+        continue;
+      } 
       double ang = angle(ic, ve[vi[i]], ir);
       double di = dist2(ic, ve[vi[i]]);
       //cerr << ve[vi[i]] << " " << ang << " " << di << endl;
@@ -97,7 +102,28 @@ class SmallPolygons{
     }
     return vi;
   }
-
+  
+  /*vector<int> getsol1(vector<int> vi){
+    assert(vi.size() >= 3);
+    if(vi.size() == 3) return vi;
+    PT ic = ve[vi[0]];
+    PT ir = ve[vi[1]];
+    vector<pair<pair<double,double>, int> > vs;
+    //cerr << ic << endl;
+    for(int i = 1; i < vi.size(); i++){
+      double ang = angle(ic, ve[vi[i]], ir);
+      double di = dist2(ic, ve[vi[i]]);
+      //cerr << ve[vi[i]] << " " << ang << " " << di << endl;
+      vs.pb(mp(mp(ang,di),i));
+    }
+    sort(all(vs));
+    
+    for(int i = 0; i < vs.size(); i++){
+      vi[i+1] = vs[i].Y;
+    }
+    return vi;
+  }*/
+  
   
   
   
