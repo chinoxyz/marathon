@@ -113,13 +113,14 @@ vector<int> getpol1(vector<int> vi){
   //cerr << ic << endl;
   
   for(int i = 0; i < vi.size(); i++){
+    
     if(ve[vi[i]] == ic){
-      vs.pb(mp(mp(-1,-1),i));
+      vs.pb(mp(mp(-1,-1),vi[i]));
       continue;
     } 
     double ang = angle(ic, ve[vi[i]], ir);
     double di = dist2(ic, ve[vi[i]]);
-    vs.pb(mp(mp(ang,di),i));
+    vs.pb(mp(mp(ang,di),vi[i]));
   }
   sort(all(vs));
   for(int i = 0; i < vs.size(); i++){
@@ -146,7 +147,7 @@ vector<vector<int> > getsol1(){
 }
 
 vector<vector<int> > getsol2(){
-return getsol1();
+  //return getsol1();
   if(n == 1) return getsol1();
   
   vector<vector<int> > res;
@@ -168,7 +169,7 @@ return getsol1();
   }
   
   for(int i = 0; i < np; i++){
-    res[(i<np/2?0:1)].pb(i);//vp[i].i
+    res[(i<np/2?0:1)].pb(vp[i].i);//
     /*vi.pb(i);//vp[i].i
     fprintf(stderr,"%d ",vp[i].i);
     if(!vb.empty() && vb.back() == i && vi.size() >= 3){
