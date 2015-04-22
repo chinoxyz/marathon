@@ -228,7 +228,7 @@ public class SmallPolygonsVis {
         // calculate the score of current set of polygons (sum of areas), including full validity check
         // will be called from interactive editing to show the results of changes
         // 1. there are at most N polygons
-        if (polys.length > N) {
+        if (Npoly > N) {
             addFatalError("You can have at most " + N + " polygons.");
             return 0;
         }
@@ -243,10 +243,21 @@ public class SmallPolygonsVis {
 
         // 3. each polygon is valid on its own
         for (int i = 0; i < polys.length; ++i)
+        {
+            if (manual && polysVert[i] == 0)
+            {
+                // polysVert[i] = 0 in manual mode means this is a deleted polygon; check only non-deleted ones
+                continue;
+            }
             if (!valid[i] && strict)
+            {
+                addFatalError("Polygon " + i + " is not valid: " + validatePoly(polys[i], polysVert[i]));
                 return 0;
+            }
+        }
 
         // 4. no two polygons intersect
+        // for an intersection to be detected, polygons have to have at least 2 vertices, so deleted polygons in manual mode have no effect
         for (int i = 0; i < polys.length; ++i)
         for (int j = 0; j < polysVert[i]; ++j) {
             for (int k = i + 1; k < polys.length; ++k)
@@ -555,12 +566,13 @@ public class SmallPolygonsVis {
                                 used[Pcur[j]] = i;
                             }
                             Ncur = 0;
+                            Npoly++;
                         }
                     }
                 }
                 if (y >= 128 && y <= 158) {
                     //"DEL POLY"
-                    //delete the current poly (and unmark used points)
+                    //delete the currently selected poly (and unmark used points)
                     if (debug) System.out.println("Deleting current polygon");
                     for (i=0; i<Ncur; i++)
                         used[Pcur[i]] = -2;
@@ -589,6 +601,7 @@ public class SmallPolygonsVis {
                     polys[indPoly][i] = -1;
                     used[Pcur[i]] = -1;
                 }
+                Npoly--;
             } else
                 if (Ncur > 0 && indPoly == -1 && Pcur[Ncur-1]==indP) {
                     //this point is last in the polygon - remove it

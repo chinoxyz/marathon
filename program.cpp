@@ -27,7 +27,7 @@ using namespace std;
 #define all(X) (X).begin(),(X).end()
 #define uni(X) X.erase(unique(X.begin(), X.end()), X.end());
 
-
+const double pi = acos(-1);
 class PT{
   public:
   int x, y, i;
@@ -36,8 +36,8 @@ class PT{
     y = yy;
     i = ii;
   }
-  PT operator <(const PT &p)  const { return x < p.x || (x == p.x && y < p.y); }
-  PT operator ==(const PT &p)  const { return x == p.x && y == p.y; }
+  bool operator <(const PT &p)  const { return x < p.x || (x == p.x && y < p.y); }
+  bool operator ==(const PT &p)  const { return x == p.x && y == p.y; }
   PT operator + (const PT &p)  const { return PT(x+p.x, y+p.y); }
   PT operator - (const PT &p)  const { return PT(x-p.x, y-p.y); }
   PT operator * (double c)     const { return PT(x*c,   y*c  ); }
@@ -48,7 +48,11 @@ int dist2(PT p, PT q)   { return dot(p-q,p-q); }
 double dist(PT p, PT q)   { return sqrt(dist2(p,q)); }
 int cross(PT p, PT q)   { return p.x*q.y-p.y*q.x; }
 double angle(PT o, PT p, PT q){
-  return (cross(p-o,q-o)<0?-1:1)*acos(dot(p-o,q-o)/(dist(o,p)*dist(o,q)));
+  return ((cross(p-o,q-o)<0?-1:1)*acos(dot(p-o,q-o)/(dist(o,p)*dist(o,q))));
+}
+
+double angle2(PT o, PT p, PT q){
+  return asin(cross(p-o,q-o)/(dist(o,p)*dist(o,q)));
 }
 
 ostream &operator<<(ostream &os, const PT &p) {
@@ -81,24 +85,37 @@ class SmallPolygons{
   vector<int> getpol1(vector<int> vi){
     assert(vi.size() >= 3);
     if(vi.size() == 3) return vi;
-    PT ic = ve[vi[0]];
-    PT ir = ve[vi[1]];
+    vector<PT> vp;
+    for(int i = 0;i < vi.size(); i++){
+      vp.pb(ve[vi[i]]);
+    }
+    sort(all(vp));
+    
+    PT ic = vp[0];
+    PT ir = ic+PT(100,-10);
+    
+    
     vector<pair<pair<double,double>, int> > vs;
     //cerr << ic << endl;
+    
     for(int i = 0; i < vi.size(); i++){
       if(ve[vi[i]] == ic){
-        vs.pb(mp(mp(0,0),i));
+        vs.pb(mp(mp(-1,-1),i));
         continue;
       } 
       double ang = angle(ic, ve[vi[i]], ir);
       double di = dist2(ic, ve[vi[i]]);
+      //fprintf(stderr, "%lf %lf\n", angle(ic, ve[vi[i]], ir), angle2(ic, ve[vi[i]], ir));
+      //cerr << ic << ir << ve[vi[i]] << endl;
+      
+      
       //cerr << ve[vi[i]] << " " << ang << " " << di << endl;
       vs.pb(mp(mp(ang,di),i));
     }
     sort(all(vs));
     
     for(int i = 0; i < vs.size(); i++){
-      vi[i+1] = vs[i].Y;
+      vi[i] = vs[i].Y;
     }
     return vi;
   }
@@ -180,7 +197,7 @@ int main(){
   printf("%d\n", ret.size());
   for (int i=0; i < ret.size(); i++){
     printf("%s\n", ret[i].c_str());
-    fprintf(stderr,"VEC: %s\n", ret[i].c_str());
+    //fprintf(stderr,"VEC: %s\n", ret[i].c_str());
   }
   fflush(stdout);
 
