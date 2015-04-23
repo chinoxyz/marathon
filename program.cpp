@@ -26,6 +26,11 @@ using namespace std;
 #define Y second
 #define all(X) (X).begin(),(X).end()
 #define uni(X) X.erase(unique(X.begin(), X.end()), X.end());
+double INF = 1e100;
+double EPS = 1e-12;
+
+
+
 
 
 
@@ -35,21 +40,7 @@ string itos(int x){
   return ss.str();
 }
 
-string vtos(vector<int> vi){
-  string rp;
-  for(int i = 0; i < vi.size(); i++){
-    rp+=itos(vi[i])+ " ";
-  }
-  return rp;
-}
-vector<string> vvtovs(vector<vector<int> > res){
-  vector<string> vs;
-  for(int i = 0; i < res.size(); i++){
-    vs.pb(vtos(res[i]));
-  }
-  return vs;
-  
-}
+
 
 
 
@@ -69,34 +60,138 @@ class PT{
   PT operator * (double c)     const { return PT(x*c,   y*c  ); }
   PT operator / (double c)     const { return PT(x/c,   y/c  ); }
 };
-int dot(PT p, PT q)     { return p.x*q.x+p.y*q.y; }
-int dist2(PT p, PT q)   { return dot(p-q,p-q); }
+double dot(PT p, PT q)     { return p.x*q.x+p.y*q.y; }
+double dist2(PT p, PT q)   { return dot(p-q,p-q); }
 double dist(PT p, PT q)   { return sqrt(dist2(p,q)); }
-int cross(PT p, PT q)   { return p.x*q.y-p.y*q.x; }
+double cross(PT p, PT q)   { return p.x*q.y-p.y*q.x; }
 double angle(PT o, PT p, PT q){
   return ((cross(p-o,q-o)<0?-1:1)*acos(dot(p-o,q-o)/(dist(o,p)*dist(o,q))));
 }
-
 double angle2(PT o, PT p, PT q){
   return asin(cross(p-o,q-o)/(dist(o,p)*dist(o,q)));
 }
-
 ostream &operator<<(ostream &os, const PT &p) {
   os << "(" << p.x << "," << p.y << ")"; 
 }
+double ComputeArea(const vector<PT> &p) {
+  double area = 0;
+  for(int i = 0; i < p.size(); i++) {
+    int j = (i+1) % p.size();
+    area += p[i].x*p[j].y - p[j].x*p[i].y;
+  }
+  return fabs(area / 2.0);
+}
+bool LinesParallel(PT a, PT b, PT c, PT d) { 
+  return fabs(cross(b-a, c-d)) < EPS; 
+}
 
+bool LinesCollinear(PT a, PT b, PT c, PT d) { 
+  return LinesParallel(a, b, c, d)
+      && fabs(cross(a-b, a-c)) < EPS
+      && fabs(cross(c-d, c-a)) < EPS; 
+}
+bool SegmentsIntersect(PT a, PT b, PT c, PT d) {
+  if (LinesCollinear(a, b, c, d)) {
+    if (dist2(a, c) < EPS || dist2(a, d) < EPS ||
+      dist2(b, c) < EPS || dist2(b, d) < EPS) return true;
+    if (dot(c-a, c-b) > 0 && dot(d-a, d-b) > 0 && dot(c-b, d-b) > 0)
+      return false;
+    return true;
+  }
+  if (cross(d-a, b-a) * cross(c-a, b-a) > 0) return false;
+  if (cross(a-c, d-c) * cross(b-c, d-c) > 0) return false;
+  return true;
+}
+bool IsSimple(const vector<PT> &p) {
+  for (int i = 0; i < p.size(); i++) {
+    for (int k = i+1; k < p.size(); k++) {
+      int j = (i+1) % p.size();
+      int l = (k+1) % p.size();
+      if (i == l || j == k) continue;
+      if (SegmentsIntersect(p[i], p[j], p[k], p[l])){
+        cerr << p[i] << p[j] << p[k] << p[l] << endl;
+        return false;
+      }
+    }
+  }
+  return true;
+}
 vector<PT> ve;
 vector<string> res;
 int np;
 int n;
 
 
-class solution{
+
+class poly{
 public:
-  vector<vector<int> > ve;
+  vector<int> vi;
+  double cost;
+  poly(vector<int> vv){
+    cost = -1;
+    vi = vv;
+  }
+  double getCost(){
+    if(cost >= 0){
+      return cost;
+    }
+    vector<PT> vq;
+    for(int i = 0; i < vi.size(); i++){
+      vq.pb(ve[vi[i]]);
+    }
+    if(!IsSimple(vq)){
+      cost = inf;
+      return cost;
+    }
+    cost = ComputeArea(vq);
+    return cost;
+  }
+  string tostring(){
+    string rp;
+    for(int i = 0; i < vi.size(); i++){
+      rp+=itos(vi[i])+ " ";
+    }
+    return rp;
+  }
+  
 };
 
-vector<int> getpol1(vector<int> vi){
+
+class solution{
+  public:
+  vector<poly> vp;
+  double cost;
+  solution(){
+    cost = -1;
+  }
+  solution(vector<poly> vv){
+    vp = vv;
+    cost = -1;
+  }
+  double getCost(){
+    if(cost >= 0){
+      return cost;
+    }
+    cost = 0;
+    for(int i = 0; i < vp.size(); i++){
+      vp[i].getCost();
+    }
+    return cost;
+  }
+  vector<string> tovs(){
+    vector<string> vs;
+    for(int i = 0; i < vp.size(); i++){
+      vs.pb(vp[i].tostring());
+    }
+    return vs;
+  }
+
+  
+};
+
+
+
+poly getpol1(vector<int> vi, int s=0,PT pa = PT(-1000,0)){
   assert(vi.size() >= 3);
   if(vi.size() == 3) return vi;
   vector<PT> vp;
@@ -104,14 +199,9 @@ vector<int> getpol1(vector<int> vi){
     vp.pb(ve[vi[i]]);
   }
   sort(all(vp));
-  
-  PT ic = vp[0];
-  PT ir = ic+PT(-1000,0);
-  
-  
+  PT ic = vp[s];
+  PT ir = ic+pa;
   vector<pair<pair<double,double>, int> > vs;
-  //cerr << ic << endl;
-  
   for(int i = 0; i < vi.size(); i++){
     
     if(ve[vi[i]] == ic){
@@ -126,26 +216,25 @@ vector<int> getpol1(vector<int> vi){
   for(int i = 0; i < vs.size(); i++){
     vi[i] = vs[i].Y;
   }
-  /*
-  for(int i = vs.size(); i >= 0; i--){
-    cerr << ve[vs[i].Y] << " " << vs[i].X.X << " " << vs[i].X.Y << endl;
-  }*/
-  return vi;
+  return poly(vi);
 }
 
-vector<vector<int> > getsol1(){
-  vector<vector<int> > res;
+poly getpol(vector<int> vi){
+  return getpol1(vi, rand()%vi.size(), PT((rand()%1000)-500, (rand()%1000)-500));
+}
+
+
+
+solution getsol1(){
+  vector<poly> res;
   vector<int> vi;
   for(int i = 0; i < np; i++){
     vi.pb(i);
   }
-  res.pb(vi);
-  for(int i = 0; i < res.size(); i++){
-    res[i] = getpol1(res[i]);
-  }
-  return res;
+  res.pb(getpol1(vi));
+  return solution(res);
 }
-
+/*
 vector<vector<int> > getsol2(){
   //return getsol1();
   if(n == 1) return getsol1();
@@ -177,13 +266,13 @@ vector<vector<int> > getsol2(){
       vi.clear();
       vb.pop_back();
       fprintf(stderr,"\n");
-    }*/
+    }
   }
   for(int i = 0; i < res.size(); i++){
     res[i] = getpol1(res[i]);
   }
   return res;
-}
+}*/
 
 
 class SmallPolygons{
@@ -206,9 +295,11 @@ class SmallPolygons{
     
     
     
-    vector<vector<int> > res = getsol2();
+    solution res = getsol1();
     
-    return vvtovs(res);
+    //solution s(res);
+    //cerr << s.getCost() << endl;
+    return res.tovs();
   }
 
 };
