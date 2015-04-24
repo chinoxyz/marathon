@@ -155,14 +155,12 @@ public:
 };
 poly getpol1(vector<int>, int, int);
 poly getpol(vector<int> vi);
+poly getpolb(vector<int> vi);
 
 class solution{
   public:
   vector<poly> vp;
   double cost;
-  solution(){
-    cost = -1;
-  }
   solution(vector<poly> vv){
     vp = vv;
     cost = -1;
@@ -173,7 +171,7 @@ class solution{
     }
     cost = 0;
     for(int i = 0; i < vp.size(); i++){
-      vp[i].getCost();
+      cost+=vp[i].getCost();
     }
     return cost;
   }
@@ -189,27 +187,34 @@ class solution{
   void splitg(int k){
     if(vp.size() >= n) return;
     assert(0 <= k && k < vp.size());
-    
+    if(vp[k].vi.size() <= 8) return;
+    //cerr <<"Hola:  "<< k << " " << vp.size() <<" " << endl;
+    int rot = rand()%2;
     vector<int>&vi = vp[k].vi;
-    vector<PT> vs;
+    vector<pair<pair<int,int>,int> > vs;
     for(int i = 0; i < vi.size(); i++){
-      vs.pb(ve[vi[i]]);
+      if(rot == 0){
+        vs.pb(mp(mp(ve[vi[i]].x,ve[vi[i]].y),vi[i]));
+      }else{
+        vs.pb(mp(mp(ve[vi[i]].y,ve[vi[i]].x),vi[i]));
+      }
     }
     sort(all(vs));
-    
     vector<int> rp[2];
-    for(int i = 0; i < np; i++){
-      rp[(i<np/2?0:1)].pb(vs[i].i);//
+    for(int i = 0; i < vs.size(); i++){
+      rp[(i< vs.size()/2?0:1)].pb(vs[i].Y);//
     }
-    vp[k] = getpol(rp[0]);
-    vp.pb(getpol(rp[1]));
-    
-    
+    vp[k] = getpolb(rp[0]);
+    vp.pb(getpolb(rp[1]));
+    cost = -1;
+  }
+  
+  void star(int k){
+    assert(0 <= k && k < vp.size());
+    vp[k] = getpol(vp[k].vi);
   }
   
 };
-
-
 
 poly getpol1(vector<int> vi, int s=0, int sk= 0){
   assert(vi.size() >= 3);
@@ -226,7 +231,7 @@ poly getpol1(vector<int> vi, int s=0, int sk= 0){
     vs.pb(mp(mp(ang,di),vi[i]));
   }
   sort(all(vs));
-  vi[0] = s;
+  vi[0] = vi[s];
   for(int i = 0; i < vs.size(); i++){
     vi[i+1] = vs[(sk+i)%vs.size()].Y;
   }
@@ -236,15 +241,15 @@ poly getpol(vector<int> vi){
   return getpol1(vi, rand()%vi.size(), rand());
 }
 
-poly getpolb(vector<int> vi, int s=0){
-  assert(vi.size() >= 3);
+poly getpolb(vector<int> vi){
+  assert(vi.size() >= 2);
   if(vi.size() == 3) return vi;
   vector<PT> vp;
   for(int i = 0;i < vi.size(); i++){
     vp.pb(ve[vi[i]]);
   }
   sort(all(vp));
-  PT ic = vp[s];
+  PT ic = vp[0];
   vector<pair<pair<double,double>, int> > vs;
   for(int i = 0; i < vi.size(); i++){
     if(ve[vi[i]] == ic){
@@ -266,25 +271,22 @@ poly getpolb(vector<int> vi, int s=0){
 
 
 solution getsolb(){
-  vector<poly> res;
   vector<int> vi;
   for(int i = 0; i < np; i++){
     vi.pb(i);
   }
-  //fprintf(stderr, "C: %d\n", c);
+  vector<poly> res;
   res.pb(getpolb(vi));
   return solution(res);
 }
 
 solution getsol1(){
-  vector<poly> res;
   vector<int> vi;
   for(int i = 0; i < np; i++){
     vi.pb(i);
   }
-  int c = rand()%np;
-  //fprintf(stderr, "C: %d\n", c);
-  res.pb(getpol1(vi,c,11));
+  vector<poly> res;
+  res.pb(getpol(vi));
   return solution(res);
 }
 
@@ -306,17 +308,32 @@ class SmallPolygons{
     
     
     solution res = getsolb();
+    //res.splitg(rand()%res.vp.size());
     
-    for(int i = 0; i < 30; i++){
-      solution rp = getsol1();
+    
+    for(int i = 0; i < 30 ; i++){
+      
+      solution rp =res;
+      
+      rp.star(rand()%rp.vp.size());
+      //cerr << "NEW: " << res.getCost() << " " << rp.getCost() << endl;
       if(rp.getCost() < res.getCost()){
         res = rp;
       }
+      
+      rp = res;
+      rp.splitg(rand()%rp.vp.size());
+      
+      //cerr << "SPLIT: " << res.getCost() << " " << rp.getCost() << endl;
+      if(rp.getCost() < res.getCost()){
+        res = rp;
+      }
+      
     }
     
     
     
-    cerr << "res: " << res.getCost() << endl;
+    
     return res.tovs();
   }
 
