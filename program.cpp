@@ -64,12 +64,11 @@ double dot(PT p, PT q)     { return p.x*q.x+p.y*q.y; }
 double dist2(PT p, PT q)   { return dot(p-q,p-q); }
 double dist(PT p, PT q)   { return sqrt(dist2(p,q)); }
 double cross(PT p, PT q)   { return p.x*q.y-p.y*q.x; }
-double angle(PT o, PT p, PT q){
-  return ((cross(p-o,q-o)<0?-1:1)*acos(dot(p-o,q-o)/(dist(o,p)*dist(o,q))));
+
+double angle0(PT p){
+  return atan2(p.x,p.y);
 }
-double angle2(PT o, PT p, PT q){
-  return asin(cross(p-o,q-o)/(dist(o,p)*dist(o,q)));
-}
+
 ostream &operator<<(ostream &os, const PT &p) {
   os << "(" << p.x << "," << p.y << ")"; 
 }
@@ -109,7 +108,7 @@ bool IsSimple(const vector<PT> &p) {
       int l = (k+1) % p.size();
       if (i == l || j == k) continue;
       if (SegmentsIntersect(p[i], p[j], p[k], p[l])){
-        cerr << p[i] << p[j] << p[k] << p[l] << endl;
+        //cerr << p[i] << p[j] << p[k] << p[l] << endl;
         return false;
       }
     }
@@ -120,7 +119,6 @@ vector<PT> ve;
 vector<string> res;
 int np;
 int n;
-
 
 
 class poly{
@@ -155,7 +153,8 @@ public:
   }
   
 };
-
+poly getpol1(vector<int>, int, int);
+poly getpol(vector<int> vi);
 
 class solution{
   public:
@@ -185,13 +184,59 @@ class solution{
     }
     return vs;
   }
-
+  
+  
+  void splitg(int k){
+    if(vp.size() >= n) return;
+    assert(0 <= k && k < vp.size());
+    
+    vector<int>&vi = vp[k].vi;
+    vector<PT> vs;
+    for(int i = 0; i < vi.size(); i++){
+      vs.pb(ve[vi[i]]);
+    }
+    sort(all(vs));
+    
+    vector<int> rp[2];
+    for(int i = 0; i < np; i++){
+      rp[(i<np/2?0:1)].pb(vs[i].i);//
+    }
+    vp[k] = getpol(rp[0]);
+    vp.pb(getpol(rp[1]));
+    
+    
+  }
   
 };
 
 
 
-poly getpol1(vector<int> vi, int s=0,PT pa = PT(-1000,0)){
+poly getpol1(vector<int> vi, int s=0, int sk= 0){
+  assert(vi.size() >= 3);
+  if(vi.size() == 3) return vi;
+  
+  PT ic = ve[vi[s]];
+  vector<pair<pair<double,double>, int> > vs;
+  for(int i = 0; i < vi.size(); i++){
+    if(ve[vi[i]] == ic){
+      continue;
+    } 
+    double ang = angle0(ve[vi[i]]-ic);
+    double di = dist2(ic, ve[vi[i]]);
+    vs.pb(mp(mp(ang,di),vi[i]));
+  }
+  sort(all(vs));
+  vi[0] = s;
+  for(int i = 0; i < vs.size(); i++){
+    vi[i+1] = vs[(sk+i)%vs.size()].Y;
+  }
+  return poly(vi);
+}
+poly getpol(vector<int> vi){
+  return getpol1(vi, rand()%vi.size(), rand());
+}
+
+poly getpolb(vector<int> vi, int s=0){
   assert(vi.size() >= 3);
   if(vi.size() == 3) return vi;
   vector<PT> vp;
@@ -200,15 +245,13 @@ poly getpol1(vector<int> vi, int s=0,PT pa = PT(-1000,0)){
   }
   sort(all(vp));
   PT ic = vp[s];
-  PT ir = ic+pa;
   vector<pair<pair<double,double>, int> > vs;
   for(int i = 0; i < vi.size(); i++){
-    
     if(ve[vi[i]] == ic){
-      vs.pb(mp(mp(-1,-1),vi[i]));
+      vs.pb(mp(mp(-10,-10),vi[i]));
       continue;
     } 
-    double ang = angle(ic, ve[vi[i]], ir);
+    double ang = angle0(ve[vi[i]]-ic);
     double di = dist2(ic, ve[vi[i]]);
     vs.pb(mp(mp(ang,di),vi[i]));
   }
@@ -219,11 +262,19 @@ poly getpol1(vector<int> vi, int s=0,PT pa = PT(-1000,0)){
   return poly(vi);
 }
 
-poly getpol(vector<int> vi){
-  return getpol1(vi, rand()%vi.size(), PT((rand()%1000)-500, (rand()%1000)-500));
+
+
+
+solution getsolb(){
+  vector<poly> res;
+  vector<int> vi;
+  for(int i = 0; i < np; i++){
+    vi.pb(i);
+  }
+  //fprintf(stderr, "C: %d\n", c);
+  res.pb(getpolb(vi));
+  return solution(res);
 }
-
-
 
 solution getsol1(){
   vector<poly> res;
@@ -231,56 +282,15 @@ solution getsol1(){
   for(int i = 0; i < np; i++){
     vi.pb(i);
   }
-  res.pb(getpol1(vi));
+  int c = rand()%np;
+  //fprintf(stderr, "C: %d\n", c);
+  res.pb(getpol1(vi,c,11));
   return solution(res);
 }
-/*
-vector<vector<int> > getsol2(){
-  //return getsol1();
-  if(n == 1) return getsol1();
-  
-  vector<vector<int> > res;
-  vector<PT> vp = ve;
-  sort(all(vp));
-  
-  vector<int> vb;
-  for(int i = 0; i < n-1; i++){
-    vb.pb(rand()%np);
-  }vb.pb(np-1);
-  
-  sort(all(vb));
-  uni(vb);
-  reverse(all(vb));
-  
-  
-  for(int i = 0; i < 2; i++){
-    res.pb(vector<int>());
-  }
-  
-  for(int i = 0; i < np; i++){
-    res[(i<np/2?0:1)].pb(vp[i].i);//
-    /*vi.pb(i);//vp[i].i
-    fprintf(stderr,"%d ",vp[i].i);
-    if(!vb.empty() && vb.back() == i && vi.size() >= 3){
-      res.pb(vi);
-      vi.clear();
-      vb.pop_back();
-      fprintf(stderr,"\n");
-    }
-  }
-  for(int i = 0; i < res.size(); i++){
-    res[i] = getpol1(res[i]);
-  }
-  return res;
-}*/
+
 
 
 class SmallPolygons{
-  
-    
-  
-  
-  
   
   
   public:
@@ -295,10 +305,18 @@ class SmallPolygons{
     
     
     
-    solution res = getsol1();
+    solution res = getsolb();
     
-    //solution s(res);
-    //cerr << s.getCost() << endl;
+    for(int i = 0; i < 30; i++){
+      solution rp = getsol1();
+      if(rp.getCost() < res.getCost()){
+        res = rp;
+      }
+    }
+    
+    
+    
+    cerr << "res: " << res.getCost() << endl;
     return res.tovs();
   }
 
@@ -317,7 +335,6 @@ int main(){
   cin >> N;
   
   ret = SmallPolygons().choosePolygons(points, N);
-  
   
   
   printf("%d\n", ret.size());
