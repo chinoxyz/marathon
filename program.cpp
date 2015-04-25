@@ -161,6 +161,9 @@ class solution{
   public:
   vector<poly> vp;
   double cost;
+  solution(){
+    cost = inf;
+  }
   solution(vector<poly> vv){
     vp = vv;
     cost = -1;
@@ -184,10 +187,10 @@ class solution{
   }
   
   
-  void splitg(int k){
+  void split(int k, int w){
     if(vp.size() >= n) return;
     assert(0 <= k && k < vp.size());
-    if(vp[k].vi.size() <= 8) return;
+    if(vp[k].vi.size() <= 6) return;
     //cerr <<"Hola:  "<< k << " " << vp.size() <<" " << endl;
     int rot = rand()%2;
     vector<int>&vi = vp[k].vi;
@@ -202,22 +205,34 @@ class solution{
     sort(all(vs));
     vector<int> rp[2];
     for(int i = 0; i < vs.size(); i++){
-      rp[(i< vs.size()/2?0:1)].pb(vs[i].Y);//
+      rp[i< w].pb(vs[i].Y);//
     }
     vp[k] = getpolb(rp[0]);
     vp.pb(getpolb(rp[1]));
     cost = -1;
   }
   
+  void splitg(int k){
+    assert(0 <= k && k < vp.size());
+    split(k,vp[k].vi.size()/2);
+  }
+  void splitr(int k){
+    assert(0 <= k && k < vp.size());
+    int siz = vp[k].vi.size();
+    if(siz <= 8) return;
+    split(k, 3+(rand()%(siz-6)));
+  }
+  
   void star(int k){
     assert(0 <= k && k < vp.size());
     vp[k] = getpol(vp[k].vi);
+    cost = -1;
   }
   
 };
 
 poly getpol1(vector<int> vi, int s=0, int sk= 0){
-  assert(vi.size() >= 3);
+  assert(vi.size() >= 2);
   if(vi.size() == 3) return vi;
   
   PT ic = ve[vi[s]];
@@ -270,6 +285,7 @@ poly getpolb(vector<int> vi){
 
 
 
+
 solution getsolb(){
   vector<int> vi;
   for(int i = 0; i < np; i++){
@@ -292,6 +308,36 @@ solution getsol1(){
 
 
 
+solution localsearch(){
+  solution res = getsolb();
+  //res.splitg(rand()%res.vp.size());
+  
+  for(int i = 0; i < 25 ; i++){
+    
+    solution rp =res;
+    
+    rp.star(rand()%rp.vp.size());
+    //cerr << "NEW: " << res.getCost() << " " << rp.getCost() << endl;
+    if(rp.getCost() < res.getCost()){
+      res = rp;
+    }
+    
+    rp = res;
+    rp.splitr(rand()%rp.vp.size());
+    
+    //cerr << "SPLIT: " << res.getCost() << " " << rp.getCost() << endl;
+    if(rp.getCost() < res.getCost()){
+      res = rp;
+    }
+  }  
+  return res;
+}
+
+
+
+
+
+
 class SmallPolygons{
   
   
@@ -305,33 +351,24 @@ class SmallPolygons{
     np/=2;
     
     
-    
-    
-    solution res = getsolb();
-    //res.splitg(rand()%res.vp.size());
-    
-    
-    for(int i = 0; i < 30 ; i++){
-      
-      solution rp =res;
-      
-      rp.star(rand()%rp.vp.size());
-      //cerr << "NEW: " << res.getCost() << " " << rp.getCost() << endl;
-      if(rp.getCost() < res.getCost()){
-        res = rp;
-      }
-      
-      rp = res;
-      rp.splitg(rand()%rp.vp.size());
-      
-      //cerr << "SPLIT: " << res.getCost() << " " << rp.getCost() << endl;
-      if(rp.getCost() < res.getCost()){
-        res = rp;
-      }
-      
+    int num = 20;
+    if(np < 50){
+      num = 300;
+    }else if(np < 100){
+      num = 100;
+    }else if(np < 500){
+      num = 30;
+    }else{
+      num = 5;
     }
     
-    
+    solution res = getsolb(), rp;
+    for(int k = 0; k < num; k++){
+      rp = localsearch();
+      if(rp.getCost() < res.getCost()){
+        res = rp;
+      }
+    }
     
     
     return res.tovs();
