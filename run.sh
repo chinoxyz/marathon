@@ -1,7 +1,7 @@
 
 
-for i in {1..50}
+for i in {200..2000}
 do
    echo "CASE:" $i
-   java -jar tester.jar -exec ./program -seed $i
+   time java -jar tester.jar -exec ./program -seed $i
 done	

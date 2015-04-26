@@ -144,6 +144,7 @@ public class SmallPolygonsVis {
             else if (testSize == 1) NP = rnd.nextInt(400) + 100;
             else NP = rnd.nextInt(1001) + 500;
         }
+        NP = 10;
         System.out.println("NP = " + NP);
         p = new Pnt[NP];
 
