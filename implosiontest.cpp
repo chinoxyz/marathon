@@ -67,12 +67,9 @@ double angle0(PT p){
   return atan2(p.x,p.y);
 }
 
-ostream &operator<<(ostream &os, const PT &p) {
-  os << "(" << p.x << "," << p.y << ")"; 
-}
 
-
-vector<PT> convex_hull(vector<PT> P){ 
+vector<PT> convex_hull(vector<PT> P){
+  assert(P.size() >= 3);
 	int n = P.size(), k = 0; 
 	vector<PT> H(2*n); 
 	// Sort PTs lexicographically 
@@ -90,6 +87,11 @@ vector<PT> convex_hull(vector<PT> P){
 	H.resize(k);
 	H.pop_back();
 	return H; 
+}
+
+
+ostream &operator<<(ostream &os, const PT &p) {
+  os << "(" << p.x << "," << p.y << ")"; 
 }
 
 // O(ni)
@@ -140,7 +142,7 @@ bool hasArea(const vector<PT> &p){
 }
 // O(ni*ni)
 bool IsSimple(const vector<PT> &p) {
-  return true;
+  
   
   for (int i = 0; i < p.size(); i++) {
     for (int k = i+1; k < p.size(); k++) {
@@ -148,6 +150,11 @@ bool IsSimple(const vector<PT> &p) {
       int l = (k+1) % p.size();
       if (i == l || j == k) continue;
       if (SegmentsIntersect(p[i], p[j], p[k], p[l])){
+      
+        for(int w = 0; w < p.size(); w++){
+          cerr<< p[w] << " ";
+        }cerr << endl;
+      
         cerr << p[i] << p[j] << p[k] << p[l] << endl;
         return false;
       }
@@ -165,6 +172,9 @@ class poly{
 public:
   vector<int> vi;
   double cost;
+  poly(){
+    cost = inf;
+  }
   poly(vector<int> vv){
     cost = -1;
     vi = vv;
@@ -197,6 +207,7 @@ public:
   }
   
 };
+
 poly getpol1(vector<int>, int, int);
 poly getpol(vector<int> vi);
 
@@ -233,9 +244,14 @@ class solution{
     return vs;
   }
   
+  
+  
+  
+  
+  
   // O(ni lg ni + C(R));
   void split(int k, int w){
-    if(vp.size() >= n) return;
+    ;if(vp.size() >= n) return;
     assert(0 <= k && k < vp.size());
     if(vp[k].vi.size() <= 6) return;
     //cerr <<"Hola:  "<< k << " " << vp.size() <<" " << endl;
@@ -274,12 +290,13 @@ class solution{
     cost = -1;
   }
 };
+
 // O(ni lg ni)
 poly getpol1(vector<int> vi, int s=0){
   assert(vi.size() >= 2);
   if(vi.size() == 3) return vi;
   PT ic = ve[vi[s]];
-  
+  cout << "center:"<<ic << endl;
   vector<pair<pair<double,double>, int> > vs;
   for(int i = 0; i < vi.size(); i++){
     if(vi[i] == vi[s]){
@@ -327,50 +344,104 @@ poly getpol(vector<int> vi){
 }
 
 
-
-// O(np lg np)
-solution getsol1(){
-  vector<int> vi;
-  for(int i = 0; i < np; i++){
-    vi.pb(i);
+// O(ni lg ni + C(R));
+poly getpol2(vector<int> vi){
+  if(vi.size() <= 6) return getpol(vi);
+  int w = vi.size()/2;
+  //cerr <<"Hola:  "<< k << " " << vp.size() <<" " << endl;
+  int rot = 1;//rand()%2;
+  vector<pair<pair<int,int>,int> > vs;
+  for(int i = 0; i < vi.size(); i++){
+    if(rot == 0){
+      vs.pb(mp(mp(ve[vi[i]].x,ve[vi[i]].y),vi[i]));
+    }else{
+      vs.pb(mp(mp(ve[vi[i]].y,ve[vi[i]].x),vi[i]));
+    }
   }
-  vector<poly> res;
-  res.pb(getpol(vi));
-  return solution(res);
+  sort(all(vs));
+  vector<int> rp[2];
+  for(int i = 0; i < vs.size(); i++){
+    rp[i< w?0:1].pb(vs[i].Y);//
+  }
+  //cout << w << endl;
+  poly pv[2];
+  pv[0] = getpol1(rp[0],w-1);
+  
+  pv[1] = getpol1(rp[1],0);
+  reverse(all(pv[1].vi));
+  
+  
+  for(int i = 0; i < pv[0].vi.size(); i++){
+    cout  << ve[pv[0].vi[i]] << " ";
+  }cout << endl;
+  for(int i = 0; i < pv[1].vi.size(); i++){
+    cout  << ve[pv[1].vi[i]] << " ";
+  }cout << endl;
+  int k = 0;
+  
+  /*if(!SegmentsIntersect(pv[0].vi[0],pv[1].vi[0], pv[0].vi[1],pv[1].vi[1])){
+    cout << "HEEY" << endl;
+    return getpol1(vi);
+  }*/
+  vi[k++] = pv[0].vi[0];
+  for(int i = 1; i < pv[0].vi.size(); i++){
+    vi[k++] = pv[1].vi[i];
+  }
+  for(int i = 1; i < pv[0].vi.size(); i++){
+    vi[k++] = pv[0].vi[i];
+  }
+  vi[k++] = pv[1].vi[0];
+  
+  return poly(vi);
 }
+  
 
 
-
-solution localsearch(){
-  solution res = getsol1();
-  //res.splitg(rand()%res.vp.size());
-  solution rp;
-  for(int i = 0; i < 50 ; i++){
-    
-    rp =res;
-    rp.star(rand()%rp.vp.size());
-    //cerr << "NEW: " << res.getCost() << " " << rp.getCost() << endl;
-    if(rp.getCost() < res.getCost()){
-      res = rp;
-    }
-    
-    rp = res;
-    rp.splitr(rand()%rp.vp.size());
-    
-    //cerr << "SPLIT: " << res.getCost() << " " << rp.getCost() << endl;
-    if(rp.getCost() < res.getCost()){
-      res = rp;
-    }
-  }  
+// O(ni lg ni + C(R));
+poly getpol3(vector<int> vi){
+  if(vi.size() <= 6) return getpol(vi);
+  set<int> se;
+  vector<PT> vw,vc1,vc2,vr;
+  vector<int> vi2;
+  for(int i = 0; i < vi.size(); i++){
+    vw.pb(ve[vi[i]]);
+    se.insert(vi[i]);
+  }
+  vc1 = convex_hull(vw);
   
+  for(int i = 0; i < vc1.size(); i++){
+    se.erase(vc1[i].i);
+  }
+  if(se.size() <= 4){
+    return getpol(vi);
+  }
   
+  for(set<int>::iterator it = se.begin(); it != se.end(); it++){
+    vr.pb(ve[*it]);
+  }
+  vc2 = convex_hull(vr);
   
+  vector<int> res;
+  for(int i = 0; i < vc1.size(); i++){
+    res.pb(vc1[i].i);
+    cout << vc1[i] << " ";
+  }cout << endl;
   
+  for(int i = 0; i < vc2.size(); i++){
+    vi2.pb(vc2[i].i);
+    se.erase(vc2[i].i);
+  }
+  for(set<int>::iterator it = se.begin(); it != se.end(); it++){
+    vi2.pb(ve[*it].i);
+  }
+  vi2 = getpol1(vi2,0).vi;
+  for(int i = 0; i < vi2.size(); i++){
+    res.pb(vi2[i]);
+  }
+  assert(res.size() == vi.size());
   return res;
 }
-
-
-
+  
 
 
 
@@ -378,7 +449,8 @@ class SmallPolygons{
   
   
   public:
-  vector <string> choosePolygons(vector <int> points, int N){
+  void choosePolygons(vector <int> points, int N){
+    ve.clear();
     np = points.size();
     n = N;
     for(int i = 0; i < np; i+=2){
@@ -387,56 +459,76 @@ class SmallPolygons{
     np/=2;
     
     
-    int num = 10;
-    
-    if(np < 50){
-      num = 30000;
-    }else if(np < 100){
-      num = 1000;
-    }else if(np < 500){
-      num = 300;
-    }else{
-      num = 100;
+    vector<int> vi;
+    for(int i = 0; i < np; i++){
+      vi.pb(i);
     }
     
-    solution res = getsol1(), rp;
-    for(int k = 0; k < num; k++){
-      rp = localsearch();
-      if(rp.getCost() < res.getCost()){
-        res = rp;
+    poly w = getpol3(vi);
+      
+    
+    
+    vector<PT> vw;
+    for(int k = 0; k < np; k++){
+      vw.pb(ve[w.vi[k]]);
+    }
+    
+    if(!IsSimple(vw)){
+      cout << "hola: no es simple"  << endl;
+      exit(0);
+    }
+    cout << np << " " << ve.size() << endl;
+    /*
+    for(int i = 0; i < np; i++){
+      poly w = getpol1(vi,i);
+      
+      
+      
+      vector<PT> vw;
+      for(int k = 0; k < np; k++){
+        vw.pb(ve[w.vi[k]]);
       }
-    }
+      
+      if(!IsSimple(vw)){
+        cout << "hola: " << i << endl;
+        exit(0);
+      }
+      cout << np << " " << ve.size() << "cic" << i << endl;
+    }*/
     
-    
-    
-    
-    
-    return res.tovs();
   }
 
 };
-int main(){
-  int Np; 
-  vector<int> points;
-  int N;
-  int v;
-  vector<string> ret;
-  cin >> Np;
-  for (int i=0; i < Np; i++){
-    cin >> v;
-    points.pb(v);
-  }
-  cin >> N;
-  
-  ret = SmallPolygons().choosePolygons(points, N);
-  
-  
-  printf("%d\n", ret.size());
-  for (int i=0; i < ret.size(); i++){
-    printf("%s\n", ret[i].c_str());
-    //fprintf(stderr,"VEC: %s\n", ret[i].c_str());
-  }
-  fflush(stdout);
 
+
+int main(){
+  
+  
+  for(int k = 0; k < 1000000; k++){
+    int n = 8;
+    int mn = 30;
+    vector<pii> ve;
+    for(int i = 0; i < n; i++){
+      int x,y;
+      
+      x = rand()%mn;
+      y = rand()%mn;
+      
+      ve.pb(mp(x,y));
+    }
+    sort(all(ve));
+    uni(ve);
+    vector<int> vi;
+    for(int i = 0; i < ve.size(); i++){
+      vi.pb(ve[i].X);
+      vi.pb(ve[i].Y);
+    }
+    for(int i = 0; i < ve.size(); i++){
+      printf("[%d %d] ", ve[i].X, ve[i].Y);
+    }cout << endl;
+    
+    SmallPolygons().choosePolygons(vi, 1);
+  }
   return 0;
 }
+
