@@ -422,10 +422,14 @@ poly getpol3(vector<int> vi){
   vc2 = convex_hull(vr);
   
   vector<int> res;
+  
+  
+  cout  << "CONVEXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX:"<<endl;
   for(int i = 0; i < vc1.size(); i++){
-    res.pb(vc1[i].i);
     cout << vc1[i] << " ";
   }cout << endl;
+  
+  
   
   for(int i = 0; i < vc2.size(); i++){
     vi2.pb(vc2[i].i);
@@ -435,8 +439,18 @@ poly getpol3(vector<int> vi){
     vi2.pb(ve[*it].i);
   }
   vi2 = getpol1(vi2,0).vi;
-  for(int i = 0; i < vi2.size(); i++){
+  
+  
+  if(!SegmentsIntersect(ve[vi2[0]], vc1.back(), ve[vi2[1]], vc1[0])){
+    return getpol(vi);
+  }
+  
+  for(int i = 1; i < vi2.size(); i++){
     res.pb(vi2[i]);
+  }
+  res.pb(vi2[0]);
+  for(int i = 0; i < vc1.size(); i++){
+    res.pb(vc1[i].i);
   }
   assert(res.size() == vi.size());
   return res;
