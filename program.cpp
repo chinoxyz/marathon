@@ -199,6 +199,7 @@ public:
 };
 poly getpol1(vector<int>, int, int);
 poly getpol(vector<int> vi);
+poly getpol3(vector<int> vi);
 
 class solution{
   public:
@@ -273,6 +274,13 @@ class solution{
     vp[k] = getpol(vp[k].vi);
     cost = -1;
   }
+  
+  // O(ni lg ni + C(R))
+  void implosion(int k){
+    assert(0 <= k && k < vp.size());
+    vp[k] = getpol3(vp[k].vi);
+    cost = -1;
+  }
 };
 // O(ni lg ni)
 poly getpol1(vector<int> vi, int s=0){
@@ -321,6 +329,66 @@ poly getpol1(vector<int> vi, int s=0){
   return poly(vi);
 }
 
+
+// O(ni lg ni + C(R));
+poly getpol3(vector<int> vi){
+  if(vi.size() <= 6) return getpol(vi);
+  set<int> se;
+  vector<PT> vw,vc1,vc2,vr;
+  vector<int> vi2;
+  for(int i = 0; i < vi.size(); i++){
+    vw.pb(ve[vi[i]]);
+    se.insert(vi[i]);
+  }
+  vc1 = convex_hull(vw);
+  
+  for(int i = 0; i < vc1.size(); i++){
+    se.erase(vc1[i].i);
+  }
+  if(se.size() <= 4){
+    return getpol(vi);
+  }
+  
+  for(set<int>::iterator it = se.begin(); it != se.end(); it++){
+    vr.pb(ve[*it]);
+  }
+  vc2 = convex_hull(vr);
+  
+  vector<int> res;
+  
+  
+  
+  
+  
+  
+  for(int i = 0; i < vc2.size(); i++){
+    vi2.pb(vc2[i].i);
+    se.erase(vc2[i].i);
+  }
+  for(set<int>::iterator it = se.begin(); it != se.end(); it++){
+    vi2.pb(ve[*it].i);
+  }
+  vi2 = getpol1(vi2,0).vi;
+  
+  
+  
+  //cout << LinesParallel(ve[vi2[0]], ve[vi2[1]], ve[vi2[1]], ve[vi2[2]]) << endl;
+  
+  if(!SegmentsIntersect(ve[vi2[0]], vc1.back(), ve[vi2[1]], vc1[0]) || LinesParallel(ve[vi2[0]], ve[vi2[1]], ve[vi2[1]], ve[vi2[2]]) ){
+    return getpol(vi);
+  }
+  
+  for(int i = 1; i < vi2.size(); i++){
+    res.pb(vi2[i]);
+  }
+  res.pb(vi2[0]);
+  for(int i = 0; i < vc1.size(); i++){
+    res.pb(vc1[i].i);
+  }
+  assert(res.size() == vi.size());
+  return res;
+}
+
 // O(ni lg ni)
 poly getpol(vector<int> vi){
   return getpol1(vi, rand()%vi.size());
@@ -347,12 +415,22 @@ solution localsearch(){
   solution rp;
   for(int i = 0; i < 50 ; i++){
     
+    
+    rp =res;
+    rp.implosion(rand()%rp.vp.size());
+    //cerr << "NEW: " << res.getCost() << " " << rp.getCost() << endl;
+    if(rp.getCost() < res.getCost()){
+      res = rp;
+    }
+    
     rp =res;
     rp.star(rand()%rp.vp.size());
     //cerr << "NEW: " << res.getCost() << " " << rp.getCost() << endl;
     if(rp.getCost() < res.getCost()){
       res = rp;
     }
+    
+    
     
     rp = res;
     rp.splitr(rand()%rp.vp.size());

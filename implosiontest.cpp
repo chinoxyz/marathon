@@ -424,10 +424,7 @@ poly getpol3(vector<int> vi){
   vector<int> res;
   
   
-  cout  << "CONVEXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX:"<<endl;
-  for(int i = 0; i < vc1.size(); i++){
-    cout << vc1[i] << " ";
-  }cout << endl;
+  
   
   
   
@@ -440,8 +437,17 @@ poly getpol3(vector<int> vi){
   }
   vi2 = getpol1(vi2,0).vi;
   
+  cout  << "CONVEXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX:"<<endl;
+  for(int i = 0; i < vc1.size(); i++){
+    cout << vc1[i] << " ";
+  }cout << endl;
+  for(int i = 0; i < vi2.size(); i++){
+    cout << ve[vi2[i]] << " ";
+  }cout << endl;
   
-  if(!SegmentsIntersect(ve[vi2[0]], vc1.back(), ve[vi2[1]], vc1[0])){
+  //cout << LinesParallel(ve[vi2[0]], ve[vi2[1]], ve[vi2[1]], ve[vi2[2]]) << endl;
+  
+  if(!SegmentsIntersect(ve[vi2[0]], vc1.back(), ve[vi2[1]], vc1[0]) || LinesParallel(ve[vi2[0]], ve[vi2[1]], ve[vi2[1]], ve[vi2[2]]) ){
     return getpol(vi);
   }
   
@@ -519,8 +525,8 @@ int main(){
   
   
   for(int k = 0; k < 1000000; k++){
-    int n = 8;
-    int mn = 30;
+    int n = 50;
+    int mn = 700;
     vector<pii> ve;
     for(int i = 0; i < n; i++){
       int x,y;
