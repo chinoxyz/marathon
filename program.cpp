@@ -282,6 +282,26 @@ class solution{
     cost = -1;
   }
 };
+
+vector<int> fixend(vector<int> vi){
+  vector<pair<double, int> > vc;
+  int si = vi.size()-1;
+  for(int k = vi.size()-1; k >= 0; k--){
+    if(LinesParallel(ve[vi[0]], ve[vi[vi.size()-1]], ve[vi[(k+1)%vi.size()]], ve[vi[k]])){
+      double di = dist2(ve[vi[0]], ve[vi[k]]);
+      vc.pb(mp(-di,vi[k]));
+      si = k;
+    }else{
+      break;
+    }
+  }
+  sort(all(vc));
+  for(int i = 0; i < vc.size(); i++){
+    vi[si+i] = vc[i].Y;
+  }
+  return vi;
+}
+
 // O(ni lg ni)
 poly getpol1(vector<int> vi, int s=0){
   assert(vi.size() >= 2);
@@ -309,23 +329,8 @@ poly getpol1(vector<int> vi, int s=0){
   for(int i = 0; i < vs.size(); i++){
     vi[i+1] = vs[(i+ki)%vs.size()].Y;
   }
-  vector<pair<double, int> > vc;
-  int si = vi.size()-1;
-  for(int k = vi.size()-1; k >= 0; k--){
-    if(LinesParallel(ve[vi[0]], ve[vi[vi.size()-1]], ve[vi[(k+1)%vi.size()]], ve[vi[k]])){
-      double di = dist2(ve[vi[0]], ve[vi[k]]);
-      vc.pb(mp(-di,vi[k]));
-      si = k;
-    }else{
-      break;
-    }
-  }
   
-  sort(all(vc));
-  for(int i = 0; i < vc.size(); i++){
-    vi[si+i] = vc[i].Y;
-  }
-  
+  vi = fixend(vi);
   return poly(vi);
 }
 

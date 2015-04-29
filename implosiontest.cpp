@@ -211,6 +211,21 @@ public:
 poly getpol1(vector<int>, int, int);
 poly getpol(vector<int> vi);
 
+vector<int> reorder(PT center, vector<int> vi){
+  int ki = 0;
+  for(int i = 0; i < vi.size(); i++){
+    if(ve[vi[i]] == center){
+      ki = i;
+    }
+  }
+  cout << center << ki << endl;
+  
+  rotate(vi.begin(), vi.begin()+vi.size()-ki, vi.end());
+  
+  return vi;
+}
+
+
 class solution{
   public:
   vector<poly> vp;
@@ -335,7 +350,7 @@ poly getpol1(vector<int> vi, int s=0){
     vi[si+i] = vc[i].Y;
   }
   
-  return poly(vi);
+  return poly(reorder(ic,vi));
 }
 
 // O(ni lg ni)
@@ -349,7 +364,7 @@ poly getpol2(vector<int> vi){
   if(vi.size() <= 6) return getpol(vi);
   int w = vi.size()/2;
   //cerr <<"Hola:  "<< k << " " << vp.size() <<" " << endl;
-  int rot = 1;//rand()%2;
+  int rot = 0;//rand()%2;
   vector<pair<pair<int,int>,int> > vs;
   for(int i = 0; i < vi.size(); i++){
     if(rot == 0){
@@ -368,7 +383,6 @@ poly getpol2(vector<int> vi){
   pv[0] = getpol1(rp[0],w-1);
   
   pv[1] = getpol1(rp[1],0);
-  reverse(all(pv[1].vi));
   
   
   for(int i = 0; i < pv[0].vi.size(); i++){
@@ -379,19 +393,27 @@ poly getpol2(vector<int> vi){
   }cout << endl;
   int k = 0;
   
+  for(int i = 0; i < pv[0].vi.size(); i++){
+    vi[k++] = pv[0].vi[i];
+  }
+  for(int i = 1; i < pv[1].vi.size(); i++){
+    vi[k++] = pv[1].vi[i];
+  }
+  vi[k++] = pv[1].vi[0];
+  
   /*if(!SegmentsIntersect(pv[0].vi[0],pv[1].vi[0], pv[0].vi[1],pv[1].vi[1])){
     cout << "HEEY" << endl;
     return getpol1(vi);
-  }*/
+  }
   vi[k++] = pv[0].vi[0];
-  for(int i = 1; i < pv[0].vi.size(); i++){
+  for(int i = 1; i < pv[1].vi.size(); i++){
     vi[k++] = pv[1].vi[i];
   }
   for(int i = 1; i < pv[0].vi.size(); i++){
     vi[k++] = pv[0].vi[i];
   }
   vi[k++] = pv[1].vi[0];
-  
+  */
   return poly(vi);
 }
   
@@ -484,7 +506,7 @@ class SmallPolygons{
       vi.pb(i);
     }
     
-    poly w = getpol3(vi);
+    poly w = getpol2(vi);
       
     
     
@@ -525,8 +547,8 @@ int main(){
   
   
   for(int k = 0; k < 1000000; k++){
-    int n = 50;
-    int mn = 700;
+    int n = 10;
+    int mn = 30;
     vector<pii> ve;
     for(int i = 0; i < n; i++){
       int x,y;
