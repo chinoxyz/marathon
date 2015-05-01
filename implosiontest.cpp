@@ -68,6 +68,25 @@ double angle0(PT p){
 }
 
 
+vector<PT> hull(vector<PT> P, bool b = false){
+  assert(P.size() >= 3);
+	int n = P.size(), k = 0; 
+	vector<PT> H(2*n); 
+	// Sort PTs lexicographically 
+	sort(P.begin(), P.end()); 
+	// Build lower hull 
+	for (int i = 0; i < n; i++) {
+	  if(b == 0){
+		  while (k >= 2 && cross(H[k-1]-H[k-2], P[i]-H[k-2]) < 0) k--; 
+		}else{
+		  while (k >= 2 && cross(H[k-1]-H[k-2], P[i]-H[k-2]) > 0) k--; 
+		}
+		H[k++] = P[i]; 
+	}
+	H.resize(k);
+	return H; 
+}
+
 vector<PT> convex_hull(vector<PT> P){
   assert(P.size() >= 3);
 	int n = P.size(), k = 0; 
@@ -218,9 +237,11 @@ vector<int> reorder(PT center, vector<int> vi){
       ki = i;
     }
   }
-  cout << center << ki << endl;
+  cout << center <<" " <<  ki << endl;
+  if(ki == 0) return vi;
+  rotate(vi.begin(), vi.begin()+ki, vi.end());
   
-  rotate(vi.begin(), vi.begin()+vi.size()-ki, vi.end());
+  assert(ve[vi[0]] == center);
   
   return vi;
 }
@@ -364,7 +385,7 @@ poly getpol2(vector<int> vi){
   if(vi.size() <= 6) return getpol(vi);
   int w = vi.size()/2;
   //cerr <<"Hola:  "<< k << " " << vp.size() <<" " << endl;
-  int rot = 0;//rand()%2;
+  int rot = 1;//rand()%2;
   vector<pair<pair<int,int>,int> > vs;
   for(int i = 0; i < vi.size(); i++){
     if(rot == 0){
@@ -375,16 +396,89 @@ poly getpol2(vector<int> vi){
   }
   sort(all(vs));
   vector<int> rp[2];
+  vector<PT> vh[2];
   for(int i = 0; i < vs.size(); i++){
     rp[i< w?0:1].pb(vs[i].Y);//
+    vh[i< w?0:1].pb(ve[vs[i].Y]);//
   }
   //cout << w << endl;
-  poly pv[2];
-  pv[0] = getpol1(rp[0],w-1);
+  vh[0] = hull(vh[0],1);
+  vh[1] = hull(vh[1],0);
   
-  pv[1] = getpol1(rp[1],0);
+  for(int k = 0; k < 2; k++){
+    for(int i = 0; i < rp[k].size(); i++){
+      cout << ve[rp[k][i]] << " ";
+    }cout << endl;
+    for(int i = 0; i < vh[k].size(); i++){
+      cout << vh[k][i] << " ";
+    }cout << endl;
+    cout << endl;
+  }
   
   
+  rp[0] = reorder(vh[0][1], rp[0]);
+  rp[1] = reorder(vh[1][1], rp[1]);
+  
+  
+  for(int k = 0; k < 2; k++){
+    for(int i = 0; i < rp[k].size(); i++){
+      cout << ve[rp[k][i]] << " ";
+    }cout << endl;
+    for(int i = 0; i < vh[k].size(); i++){
+      cout << vh[k][i] << " ";
+    }cout << endl;
+    cout << endl;
+  }
+  
+  
+  rp[0] = getpol1(rp[0],0).vi;
+  rp[1] = getpol1(rp[1],0).vi;
+  
+  reverse(all(rp[1]));
+  
+  rp[0] = reorder(vh[0][0], rp[0]);
+  rp[1] = reorder(vh[1][0], rp[1]);
+  
+  
+  
+  
+  
+  
+  
+  for(int k = 0; k < 2; k++){
+    for(int i = 0; i < rp[k].size(); i++){
+      cout << ve[rp[k][i]] << " ";
+    }cout << endl;
+    for(int i = 0; i < vh[k].size(); i++){
+      cout << vh[k][i] << " ";
+    }cout << endl;
+    cout << endl;
+  }
+  
+  
+  int k = 0;
+  
+  for(int i = 0; i < rp[0].size(); i++){
+    vi[k++] = rp[0][i];
+  }
+  for(int i = 1; i < rp[1].size(); i++){
+    vi[k++] = rp[1][i];
+  }
+  vi[k++] = rp[1][0];
+  
+  
+  if(!SegmentsIntersect(ve[rp[0][0]],ve[rp[1][0]], ve[rp[0][1]],ve[rp[1][1]]) ||
+     SegmentsIntersect(ve[rp[0][0]],ve[rp[1][0]], ve[rp[0][0]]+PT(-1,0),ve[rp[0][1]]) ||
+     SegmentsIntersect(ve[rp[0][1]],ve[rp[1][1]], ve[rp[0][0]],ve[rp[0][1]]+PT(-1,0))  
+     ){
+    cout << "HOLA!" << endl;
+    return getpol1(vi);
+  }
+  cout << "YYYYYYYYYYYYYYYYYYEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEY" << endl;
+  return vi;
+  exit(0);
+  
+  /*
   for(int i = 0; i < pv[0].vi.size(); i++){
     cout  << ve[pv[0].vi[i]] << " ";
   }cout << endl;
@@ -401,6 +495,9 @@ poly getpol2(vector<int> vi){
   }
   vi[k++] = pv[1].vi[0];
   
+  
+  
+  
   /*if(!SegmentsIntersect(pv[0].vi[0],pv[1].vi[0], pv[0].vi[1],pv[1].vi[1])){
     cout << "HEEY" << endl;
     return getpol1(vi);
@@ -414,7 +511,7 @@ poly getpol2(vector<int> vi){
   }
   vi[k++] = pv[1].vi[0];
   */
-  return poly(vi);
+  return getpol(vi);
 }
   
 
