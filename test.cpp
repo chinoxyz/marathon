@@ -187,49 +187,32 @@ int np;
 int n;
 
 
-class poly{
-public:
-  vector<int> vi;
-  double cost;
-  poly(){
-    cost = inf;
-  }
-  poly(vector<int> vv){
-    cost = -1;
-    vi = vv;
-  }
-  
-  // O(C(Ri))
-  double getCost(){
-    if(cost >= 0){
-      return cost;
-    }
-    vector<PT> vq;
-    for(int i = 0; i < vi.size(); i++){
-      vq.pb(ve[vi[i]]);
-    }
-    if(!hasArea(vq) || !IsSimple(vq)){
-      //cerr << "SHiT" << endl;
-      cost = inf;
-      return cost;
-    }
-    cost = ComputeArea(vq);
-    return cost;
-  }
-  // O(npi)
-  string tostring(){
-    string rp;
-    for(int i = 0; i < vi.size(); i++){
-      rp+=itos(vi[i])+ " ";
-    }
-    return rp;
-  }
-  
-};
 
-poly getpol1(vector<int>, int, int);
-poly getpol(vector<int> vi);
 
+vector<int> getpol1(vector<int>, int, int);
+vector<int> getpol(vector<int> vi);
+vector<int> getpol2(vector<int> , bool);
+vector<int> getpol3(vector<int> vi);
+
+
+vector<int> fixend(vector<int> vi){
+  vector<pair<double, int> > vc;
+  int si = vi.size()-1;
+  for(int k = vi.size()-1; k >= 0; k--){
+    if(LinesParallel(ve[vi[0]], ve[vi[vi.size()-1]], ve[vi[(k+1)%vi.size()]], ve[vi[k]])){
+      double di = dist2(ve[vi[0]], ve[vi[k]]);
+      vc.pb(mp(-di,vi[k]));
+      si = k;
+    }else{
+      break;
+    }
+  }
+  sort(all(vc));
+  for(int i = 0; i < vc.size(); i++){
+    vi[si+i] = vc[i].Y;
+  }
+  return vi;
+}
 vector<int> reorder(PT center, vector<int> vi){
   int ki = 0;
   for(int i = 0; i < vi.size(); i++){
@@ -247,92 +230,14 @@ vector<int> reorder(PT center, vector<int> vi){
 }
 
 
-class solution{
-  public:
-  vector<poly> vp;
-  double cost;
-  solution(){
-    cost = inf;
-  }
-  solution(vector<poly> vv){
-    vp = vv;
-    cost = -1;
-  }
-  
-  // O(C(R)) 
-  double getCost(){
-    if(cost >= 0){
-      return cost;
-    }
-    cost = 0;
-    for(int i = 0; i < vp.size(); i++){
-      cost+=vp[i].getCost();
-    }
-    return cost;
-  }
-  
-  // O(np)
-  vector<string> tovs(){
-    vector<string> vs;
-    for(int i = 0; i < vp.size(); i++){
-      vs.pb(vp[i].tostring());
-    }
-    return vs;
-  }
-  
-  
-  
-  
-  
-  
-  // O(ni lg ni + C(R));
-  void split(int k, int w){
-    ;if(vp.size() >= n) return;
-    assert(0 <= k && k < vp.size());
-    if(vp[k].vi.size() <= 6) return;
-    //cerr <<"Hola:  "<< k << " " << vp.size() <<" " << endl;
-    int rot = rand()%2;
-    vector<int>&vi = vp[k].vi;
-    vector<pair<pair<int,int>,int> > vs;
-    for(int i = 0; i < vi.size(); i++){
-      if(rot == 0){
-        vs.pb(mp(mp(ve[vi[i]].x,ve[vi[i]].y),vi[i]));
-      }else{
-        vs.pb(mp(mp(ve[vi[i]].y,ve[vi[i]].x),vi[i]));
-      }
-    }
-    sort(all(vs));
-    vector<int> rp[2];
-    for(int i = 0; i < vs.size(); i++){
-      rp[i< w].pb(vs[i].Y);//
-    }
-    vp[k] = getpol(rp[0]);
-    vp.pb(getpol(rp[1]));
-    cost = -1;
-  }
-  
-  // O(ni lg ni + c(R))
-  void splitr(int k){
-    assert(0 <= k && k < vp.size());
-    int siz = vp[k].vi.size();
-    if(siz <= 8) return;
-    split(k, 3+(rand()%(siz-6)));
-  }
-  
-  // O(ni lg ni + C(R))
-  void star(int k){
-    assert(0 <= k && k < vp.size());
-    vp[k] = getpol(vp[k].vi);
-    cost = -1;
-  }
-};
+
 
 // O(ni lg ni)
-poly getpol1(vector<int> vi, int s=0){
+vector<int> getpol1(vector<int> vi, int s=0){
   assert(vi.size() >= 2);
   if(vi.size() == 3) return vi;
   PT ic = ve[vi[s]];
-  cout << "center:"<<ic << endl;
+  
   vector<pair<pair<double,double>, int> > vs;
   for(int i = 0; i < vi.size(); i++){
     if(vi[i] == vi[s]){
@@ -354,36 +259,25 @@ poly getpol1(vector<int> vi, int s=0){
   for(int i = 0; i < vs.size(); i++){
     vi[i+1] = vs[(i+ki)%vs.size()].Y;
   }
-  vector<pair<double, int> > vc;
-  int si = vi.size()-1;
-  for(int k = vi.size()-1; k >= 0; k--){
-    if(LinesParallel(ve[vi[0]], ve[vi[vi.size()-1]], ve[vi[(k+1)%vi.size()]], ve[vi[k]])){
-      double di = dist2(ve[vi[0]], ve[vi[k]]);
-      vc.pb(mp(-di,vi[k]));
-      si = k;
-    }else{
-      break;
-    }
-  }
   
-  sort(all(vc));
-  for(int i = 0; i < vc.size(); i++){
-    vi[si+i] = vc[i].Y;
-  }
-  
-  return poly(reorder(ic,vi));
+  vi = fixend(vi);
+  return (vi);
 }
 
-// O(ni lg ni)
-poly getpol(vector<int> vi){
-  return getpol1(vi, rand()%vi.size());
-}
+
+
 
 
 // O(ni lg ni + C(R));
-poly getpol2(vector<int> vi){
-  if(vi.size() <= 6) return getpol(vi);
-  int w = vi.size()/2;
+vector<int> getpol2(vector<int> vi, bool q = 0){
+  if(vi.size() <= 8) return getpol(vi);
+  int siz = vi.size();
+  int w;
+  if(q == 0){
+    w =vi.size()/2;
+  }else{
+    w = 3+(rand()%(siz-6));
+  }
   //cerr <<"Hola:  "<< k << " " << vp.size() <<" " << endl;
   int rot = 1;//rand()%2;
   vector<pair<pair<int,int>,int> > vs;
@@ -405,34 +299,14 @@ poly getpol2(vector<int> vi){
   vh[0] = hull(vh[0],1);
   vh[1] = hull(vh[1],0);
   
-  for(int k = 0; k < 2; k++){
-    for(int i = 0; i < rp[k].size(); i++){
-      cout << ve[rp[k][i]] << " ";
-    }cout << endl;
-    for(int i = 0; i < vh[k].size(); i++){
-      cout << vh[k][i] << " ";
-    }cout << endl;
-    cout << endl;
-  }
-  
   
   rp[0] = reorder(vh[0][1], rp[0]);
   rp[1] = reorder(vh[1][1], rp[1]);
   
   
-  for(int k = 0; k < 2; k++){
-    for(int i = 0; i < rp[k].size(); i++){
-      cout << ve[rp[k][i]] << " ";
-    }cout << endl;
-    for(int i = 0; i < vh[k].size(); i++){
-      cout << vh[k][i] << " ";
-    }cout << endl;
-    cout << endl;
-  }
-  
-  
-  rp[0] = getpol1(rp[0],0).vi;
-  rp[1] = getpol1(rp[1],0).vi;
+
+  rp[0] = getpol1(rp[0],0);
+  rp[1] = getpol1(rp[1],0);
   
   reverse(all(rp[1]));
   
@@ -440,25 +314,9 @@ poly getpol2(vector<int> vi){
   rp[1] = reorder(vh[1][0], rp[1]);
   
   
-  
-  
-  
-  
-  
-  for(int k = 0; k < 2; k++){
-    for(int i = 0; i < rp[k].size(); i++){
-      cout << ve[rp[k][i]] << " ";
-    }cout << endl;
-    for(int i = 0; i < vh[k].size(); i++){
-      cout << vh[k][i] << " ";
-    }cout << endl;
-    cout << endl;
-  }
-  
-  
-  if(//!SegmentsIntersect(ve[rp[0][0]],ve[rp[1][1]], ve[rp[0][1]],ve[rp[1][0]]) ||
+  if(!SegmentsIntersect(ve[rp[0][0]],ve[rp[1][1]], ve[rp[0][1]],ve[rp[1][0]]) ||
      SegmentsIntersect(ve[rp[0][0]],ve[rp[1][0]], ve[rp[0][1]],ve[rp[1][1]])  || 
-     //LinesParallel(ve[rp[0][0]],ve[rp[0][1]], ve[rp[1][0]],ve[rp[1][1]]) ||
+     LinesParallel(ve[rp[0][0]],ve[rp[0][1]], ve[rp[1][0]],ve[rp[1][1]]) ||
      SegmentsIntersect(ve[rp[0][0]],ve[rp[1][0]], ve[rp[0][1]],ve[rp[0][2]]) ||
      SegmentsIntersect(ve[rp[0][0]],ve[rp[1][0]], ve[rp[1][1]],ve[rp[1][2]]) ||
      
@@ -466,12 +324,9 @@ poly getpol2(vector<int> vi){
      SegmentsIntersect(ve[rp[0][1]],ve[rp[1][1]], ve[rp[1][0]],ve[rp[1][2]])
      
      ){
-    cout << "HOLA!" << endl;
     return getpol1(vi);
   }
-  
   int k = 0;
-  
   for(int i = 1; i < rp[0].size(); i++){
     vi[k++] = rp[0][i];
   }
@@ -481,50 +336,12 @@ poly getpol2(vector<int> vi){
     vi[k++] = rp[1][i];
   }
   
-  cout << "YYYYYYYYYYYYYYYYYYEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEY" << endl;
   return vi;
-  exit(0);
-  
-  /*
-  for(int i = 0; i < pv[0].vi.size(); i++){
-    cout  << ve[pv[0].vi[i]] << " ";
-  }cout << endl;
-  for(int i = 0; i < pv[1].vi.size(); i++){
-    cout  << ve[pv[1].vi[i]] << " ";
-  }cout << endl;
-  int k = 0;
-  
-  for(int i = 0; i < pv[0].vi.size(); i++){
-    vi[k++] = pv[0].vi[i];
-  }
-  for(int i = 1; i < pv[1].vi.size(); i++){
-    vi[k++] = pv[1].vi[i];
-  }
-  vi[k++] = pv[1].vi[0];
-  
-  
-  
-  
-  /*if(!SegmentsIntersect(pv[0].vi[0],pv[1].vi[0], pv[0].vi[1],pv[1].vi[1])){
-    cout << "HEEY" << endl;
-    return getpol1(vi);
-  }
-  vi[k++] = pv[0].vi[0];
-  for(int i = 1; i < pv[1].vi.size(); i++){
-    vi[k++] = pv[1].vi[i];
-  }
-  for(int i = 1; i < pv[0].vi.size(); i++){
-    vi[k++] = pv[0].vi[i];
-  }
-  vi[k++] = pv[1].vi[0];
-  */
-  return getpol(vi);
 }
   
 
-
 // O(ni lg ni + C(R));
-poly getpol3(vector<int> vi){
+vector<int> getpol3(vector<int> vi){
   if(vi.size() <= 6) return getpol(vi);
   set<int> se;
   vector<PT> vw,vc1,vc2,vr;
@@ -561,15 +378,9 @@ poly getpol3(vector<int> vi){
   for(set<int>::iterator it = se.begin(); it != se.end(); it++){
     vi2.pb(ve[*it].i);
   }
-  vi2 = getpol1(vi2,0).vi;
+  vi2 = getpol1(vi2,0);
   
-  cout  << "CONVEXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX:"<<endl;
-  for(int i = 0; i < vc1.size(); i++){
-    cout << vc1[i] << " ";
-  }cout << endl;
-  for(int i = 0; i < vi2.size(); i++){
-    cout << ve[vi2[i]] << " ";
-  }cout << endl;
+  
   
   //cout << LinesParallel(ve[vi2[0]], ve[vi2[1]], ve[vi2[1]], ve[vi2[2]]) << endl;
   
@@ -587,9 +398,26 @@ poly getpol3(vector<int> vi){
   assert(res.size() == vi.size());
   return res;
 }
+
+// O(ni lg ni)
+vector<int> getpol(vector<int> vi){
+  return getpol1(vi, rand()%vi.size());
+}
+
+
+
+
+bool check(vector<int> vi){
+  vector<PT> vw;
+  for(int k = 0; k < np; k++){
+    vw.pb(ve[vi[k]]);
+  }
   
-
-
+  if(!IsSimple(vw) || !hasArea(vw)){
+    cout << "hola: no es simple"  << endl;
+    exit(0);
+  }
+}
 
 class SmallPolygons{
   
@@ -610,20 +438,12 @@ class SmallPolygons{
       vi.pb(i);
     }
     
-    poly w = getpol2(vi);
-      
+    vi = getpol2(vi,0);
+    check(vi);
+    
+   
     
     
-    vector<PT> vw;
-    for(int k = 0; k < np; k++){
-      vw.pb(ve[w.vi[k]]);
-    }
-    
-    if(!IsSimple(vw)){
-      cout << "hola: no es simple"  << endl;
-      exit(0);
-    }
-    cout << np << " " << ve.size() << endl;
     /*
     for(int i = 0; i < np; i++){
       poly w = getpol1(vi,i);
@@ -651,8 +471,8 @@ int main(){
   
   
   for(int k = 0; k < 1000000; k++){
-    int n = 100;
-    int mn = 300;
+    int n = 10;
+    int mn = 30;
     vector<pii> ve;
     for(int i = 0; i < n; i++){
       int x,y;
@@ -669,9 +489,9 @@ int main(){
       vi.pb(ve[i].X);
       vi.pb(ve[i].Y);
     }
-    for(int i = 0; i < ve.size(); i++){
+    /*for(int i = 0; i < ve.size(); i++){
       printf("[%d %d] ", ve[i].X, ve[i].Y);
-    }cout << endl;
+    }cout << endl;*/
     printf("------------------------- -------  ------- CASE: %d\n", k);
     SmallPolygons().choosePolygons(vi, 1);
   }
